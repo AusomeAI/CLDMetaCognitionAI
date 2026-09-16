@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Award, Layers, X } from 'lucide-react';
 import type { AcademicTelemetryLog } from '../../types';
+import { useModalA11y } from '../../lib/useModalA11y';
 
 interface TelemetryDashboardProps {
   logs: AcademicTelemetryLog[];
@@ -13,6 +14,7 @@ function average(nums: number[]): number {
 }
 
 export default function TelemetryDashboard({ logs, onClose }: TelemetryDashboardProps) {
+  const closeButtonRef = useModalA11y(onClose);
   const totals = useMemo(() => {
     return {
       sessions: logs.length,
@@ -30,18 +32,26 @@ export default function TelemetryDashboard({ logs, onClose }: TelemetryDashboard
   };
 
   return (
-    <div className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm print:static print:bg-white">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="telemetry-dialog-title"
+      className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm print:static print:bg-white"
+    >
       <div className="animate-modal-in mx-4 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl print:max-h-none print:border-none print:bg-white print:text-black">
         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4 print:hidden">
           <div className="flex items-center gap-2">
             <Award className="text-emerald-400" size={20} />
-            <h2 className="text-sm font-semibold text-slate-100">Academic Mastery &amp; Cognitive Telemetry</h2>
+            <h2 id="telemetry-dialog-title" className="text-sm font-semibold text-slate-100">
+              Academic Mastery &amp; Cognitive Telemetry
+            </h2>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             aria-label="Close telemetry dashboard"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 hover:bg-slate-800"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-800"
           >
             <X size={18} />
           </button>

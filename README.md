@@ -33,15 +33,19 @@ npm run build    # type-check + production build
 ## Key modules
 
 - `src/types.ts` — shared data models (`ConceptNode`, `GraphEdge`, `SocraticTurn`,
-  `FeynmanEvaluation`, `ActiveRecallCard`, `AcademicTelemetryLog`)
-- `src/data/conceptGraphData.ts` — seed concept graph
+  `FeynmanEvaluation`, `ActiveRecallCard`, `AcademicTelemetryLog`, `AccessibilitySettings`)
+- `src/data/conceptUnits.ts` — seed concept units (`ConceptUnit[]`); currently AP Biology
+  Unit 3 (chemiosmosis) and AP US History Unit 7 (causes of the 1929 crash), switchable
+  from the ribbon without losing per-unit graph progress
 - `src/components/MetaCognition/ConceptGraphCanvas.tsx` — force-style draggable SVG graph (default, accessible/keyboard-navigable view)
 - `src/components/MetaCognition/ConceptGraphCanvas3D.tsx` — lazy-loaded three.js "Neural Constellation" view: bloom-glowing nodes, animated energy-flow particles along verified edges, gentle idle float/pulse, starfield, orbit camera — all disabled/static when Reduce Motion is on
+- `src/components/MetaCognition/ConceptDetailPanel.tsx` — collapsible concept brief (summary, real-world analogy, misconceptions, AP/IB rubric) for the selected node
 - `src/components/MetaCognition/FeynmanVoicePilot.tsx` — voice/text Socratic dialogue UI
-- `src/components/MetaCognition/ActiveRecallDeck.tsx` — spaced-retrieval review deck
+- `src/components/MetaCognition/ActiveRecallDeck.tsx` — spaced-retrieval review deck (pools cards across every seeded unit)
 - `src/components/MetaCognition/TelemetryDashboard.tsx` — academic mastery analytics + PDF export
-- `src/components/MetaCognition/AccessibilityPanel.tsx` — dyslexia/ADHD sensory settings
+- `src/components/MetaCognition/AccessibilityPanel.tsx` — dyslexia/ADHD sensory settings, persisted across reloads
 - `src/lib/feynmanEvaluator.ts` — deterministic explanation scoring engine
 - `src/lib/recallScheduler.ts` — SM-2-derived spaced-repetition scheduler
 - `src/lib/audioEngine.ts` — Web Audio ambient/chime synthesis, clamped to a safe gain ceiling
-- `src/lib/db.ts` — IndexedDB persistence layer
+- `src/lib/db.ts` — IndexedDB persistence layer (per-unit graph state, recall cards, telemetry, dialogue history, accessibility settings)
+- `src/lib/useModalA11y.ts` — shared Escape-to-close + focus-management hook for modals

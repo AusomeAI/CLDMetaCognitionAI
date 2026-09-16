@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Brain,
-  Network,
   Mic as MicIcon,
   Volume2,
   BarChart3,
@@ -9,13 +8,17 @@ import {
   Layers,
   Box,
   LayoutGrid,
+  ChevronDown,
+  Dna,
+  Landmark,
 } from 'lucide-react';
 import ConceptGraphCanvas from './components/MetaCognition/ConceptGraphCanvas';
 import FeynmanVoicePilot from './components/MetaCognition/FeynmanVoicePilot';
 import ActiveRecallDeck from './components/MetaCognition/ActiveRecallDeck';
 import TelemetryDashboard from './components/MetaCognition/TelemetryDashboard';
 import AccessibilityPanel from './components/MetaCognition/AccessibilityPanel';
-import { DEFAULT_FOCUS_NODE_ID, SEED_CONCEPT_NODES, SEED_GRAPH_EDGES } from './data/conceptGraphData';
+import ConceptDetailPanel from './components/MetaCognition/ConceptDetailPanel';
+import { CONCEPT_UNITS, type ConceptUnit } from './data/conceptUnits';
 import type {
   AcademicTelemetryLog,
   AccessibilitySettings,
@@ -29,10 +32,12 @@ import { createInitialCard } from './lib/recallScheduler';
 import { audioEngine } from './lib/audioEngine';
 import {
   appendSocraticTurn,
+  getAccessibilitySettings,
   getAllRecallCards,
   getAllSocraticHistory,
   getAllTelemetryLogs,
   getGraphState,
+  saveAccessibilitySettings,
   saveGraphState,
   saveRecallCard,
   saveRecallCards,
@@ -40,8 +45,6 @@ import {
 } from './lib/db';
 
 const ConceptGraphCanvas3D = lazy(() => import('./components/MetaCognition/ConceptGraphCanvas3D'));
-
-const GRAPH_STATE_ID = 'ap-biology-unit-3';
 
 const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   fontProfile: 'default',
@@ -52,6 +55,7 @@ const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   hapticsEnabled: true,
   soundscape: 'off',
   masterVolume: 0.6,
+  voiceNarrationEnabled: true,
 };
 
 function todayKey(): string {
@@ -63,7 +67,7 @@ function buildInitialRecallCards(nodes: ConceptNode[]): ActiveRecallCard[] {
     createInitialCard(
       `card-${node.id}`,
       node.id,
-      `Free-response: explain the causal mechanism of "${node.label}" and its role in the AP Biology cellular energetics pathway.`,
+      `Free-response: explain the causal mechanism of "${node.label}" and its role in ${node.unit}.`,
       node.rubricCriteria,
     ),
   );
@@ -71,13 +75,20 @@ function buildInitialRecallCards(nodes: ConceptNode[]): ActiveRecallCard[] {
 
 type RightPanelTab = 'dialogue' | 'recall';
 type GraphViewMode = '2d' | '3d';
+type UnitsData = Record<string, { nodes: ConceptNode[]; edges: GraphEdge[] }>;
+
+const UNIT_ICONS = { dna: Dna, landmark: Landmark } as const;
 
 export default function App() {
-  const [nodes, setNodes] = useState<ConceptNode[]>(SEED_CONCEPT_NODES);
-  const [edges, setEdges] = useState<GraphEdge[]>(SEED_GRAPH_EDGES);
-  const [selectedNodeId, setSelectedNodeId] = useState<string>(DEFAULT_FOCUS_NODE_ID);
+  const [unitsData, setUnitsData] = useState<UnitsData>(() =>
+    Object.fromEntries(CONCEPT_UNITS.map((u) => [u.id, { nodes: u.nodes, edges: u.edges }])),
+  );
+  const [activeUnitId, setActiveUnitId] = useState<string>(CONCEPT_UNITS[0].id);
+  const [selectedNodeId, setSelectedNodeId] = useState<string>(CONCEPT_UNITS[0].defaultFocusNodeId);
   const [turns, setTurns] = useState<SocraticTurn[]>([]);
-  const [recallCards, setRecallCards] = useState<ActiveRecallCard[]>(() => buildInitialRecallCards(SEED_CONCEPT_NODES));
+  const [recallCards, setRecallCards] = useState<ActiveRecallCard[]>(() =>
+    buildInitialRecallCards(CONCEPT_UNITS.flatMap((u) => u.nodes)),
+  );
   const [telemetryLogs, setTelemetryLogs] = useState<AcademicTelemetryLog[]>([]);
   const [accessibility, setAccessibility] = useState<AccessibilitySettings>(DEFAULT_ACCESSIBILITY);
   const [rightTab, setRightTab] = useState<RightPanelTab>('dialogue');
@@ -90,32 +101,52 @@ export default function App() {
   const sessionStart = useRef(Date.now());
   const loadedFromDb = useRef(false);
 
+  const activeUnit: ConceptUnit = useMemo(
+    () => CONCEPT_UNITS.find((u) => u.id === activeUnitId) ?? CONCEPT_UNITS[0],
+    [activeUnitId],
+  );
+  const nodes = unitsData[activeUnitId].nodes;
+  const edges = unitsData[activeUnitId].edges;
+
   useEffect(() => {
     (async () => {
-      const [storedGraph, storedCards, storedLogs, storedHistory] = await Promise.all([
-        getGraphState(GRAPH_STATE_ID),
+      const [storedGraphs, storedCards, storedLogs, storedHistory, storedSettings] = await Promise.all([
+        Promise.all(CONCEPT_UNITS.map((u) => getGraphState(u.id))),
         getAllRecallCards(),
         getAllTelemetryLogs(),
         getAllSocraticHistory(),
+        getAccessibilitySettings(),
       ]);
-      if (storedGraph) {
-        setNodes(storedGraph.nodes);
-        setEdges(storedGraph.edges);
-      }
+
+      setUnitsData((prev) => {
+        const next = { ...prev };
+        storedGraphs.forEach((stored, i) => {
+          if (stored) next[CONCEPT_UNITS[i].id] = { nodes: stored.nodes, edges: stored.edges };
+        });
+        return next;
+      });
+
       if (storedCards.length > 0) setRecallCards(storedCards);
-      else void saveRecallCards(buildInitialRecallCards(SEED_CONCEPT_NODES));
+      else void saveRecallCards(buildInitialRecallCards(CONCEPT_UNITS.flatMap((u) => u.nodes)));
+
       setTelemetryLogs(storedLogs);
-      if (storedHistory.length > 0) {
-        setTurns(storedHistory.filter((t) => t.targetedNodeId === DEFAULT_FOCUS_NODE_ID));
-      }
+      setTurns(storedHistory);
+      if (storedSettings) setAccessibility({ ...DEFAULT_ACCESSIBILITY, ...storedSettings });
+
       loadedFromDb.current = true;
     })();
   }, []);
 
   useEffect(() => {
     if (!loadedFromDb.current) return;
-    void saveGraphState(GRAPH_STATE_ID, nodes, edges);
-  }, [nodes, edges]);
+    const current = unitsData[activeUnitId];
+    void saveGraphState(activeUnitId, current.nodes, current.edges);
+  }, [unitsData, activeUnitId]);
+
+  useEffect(() => {
+    if (!loadedFromDb.current) return;
+    void saveAccessibilitySettings(accessibility);
+  }, [accessibility]);
 
   useEffect(() => {
     document.body.setAttribute('data-font', accessibility.fontProfile);
@@ -126,6 +157,11 @@ export default function App() {
 
   const nodeById = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
   const selectedNode = nodeById.get(selectedNodeId) ?? nodes[0];
+
+  const allNodesFlat = useMemo(
+    () => CONCEPT_UNITS.flatMap((u) => unitsData[u.id]?.nodes ?? u.nodes),
+    [unitsData],
+  );
 
   const conceptTurns = useMemo(
     () => turns.filter((t) => t.targetedNodeId === selectedNodeId),
@@ -150,6 +186,19 @@ export default function App() {
     return 'Building Foundations';
   }, [masteryPercent]);
 
+  const updateActiveUnit = (updater: (prev: UnitsData[string]) => UnitsData[string]) => {
+    setUnitsData((prev) => ({ ...prev, [activeUnitId]: updater(prev[activeUnitId]) }));
+  };
+
+  const handleSelectUnit = (unitId: string) => {
+    if (unitId === activeUnitId) return;
+    const unit = CONCEPT_UNITS.find((u) => u.id === unitId);
+    if (!unit) return;
+    setActiveUnitId(unitId);
+    setSelectedNodeId(unit.defaultFocusNodeId);
+    setRightTab('dialogue');
+  };
+
   const handleSelectNode = (nodeId: string) => {
     setSelectedNodeId(nodeId);
     audioEngine.playNodeTapChime();
@@ -157,7 +206,7 @@ export default function App() {
   };
 
   const handleDragNode = (nodeId: string, x: number, y: number) => {
-    setNodes((prev) => prev.map((n) => (n.id === nodeId ? { ...n, x, y } : n)));
+    updateActiveUnit((u) => ({ ...u, nodes: u.nodes.map((n) => (n.id === nodeId ? { ...n, x, y } : n)) }));
   };
 
   const handleNewTurn = (turn: SocraticTurn) => {
@@ -171,12 +220,10 @@ export default function App() {
     if (prevNode && prevNode.masteryStatus !== 'mastered' && newStatus === 'mastered') {
       setGapsResolvedToday((c) => c + 1);
     }
-    setNodes((prev) => prev.map((n) => (n.id === nodeId ? { ...n, masteryStatus: newStatus } : n)));
-    setEdges((prev) =>
-      prev.map((e) =>
-        e.targetNodeId === nodeId && newStatus === 'mastered' ? { ...e, isVerified: true } : e,
-      ),
-    );
+    updateActiveUnit((u) => ({
+      nodes: u.nodes.map((n) => (n.id === nodeId ? { ...n, masteryStatus: newStatus } : n)),
+      edges: u.edges.map((e) => (e.targetNodeId === nodeId && newStatus === 'mastered' ? { ...e, isVerified: true } : e)),
+    }));
   };
 
   const handleCardReviewed = (updated: ActiveRecallCard) => {
@@ -192,7 +239,7 @@ export default function App() {
       .map(() => 75);
     const log: AcademicTelemetryLog = {
       sessionDate: todayKey(),
-      subject: selectedNode?.subject ?? 'biology',
+      subject: selectedNode?.subject ?? activeUnit.subject,
       durationMinutes,
       explanationsSubmitted: studentTurns.length,
       gapsIdentifiedCount: nodes.filter((n) => n.masteryStatus === 'gap_detected').length,
@@ -218,7 +265,7 @@ export default function App() {
           <span className="text-sm font-semibold text-slate-100">MetaCognition AI</span>
         </div>
 
-        <RibbonPill icon={<Network size={14} />} label="AP Biology — Unit 3: Cellular Energetics" />
+        <SubjectSwitcher activeUnit={activeUnit} onSelect={handleSelectUnit} />
         <RibbonPill icon={<MicIcon size={14} />} label="Feynman Socratic Dialogue" />
         <RibbonPill
           icon={<Volume2 size={14} />}
@@ -266,7 +313,7 @@ export default function App() {
       </header>
 
       <main className="grid flex-1 grid-cols-1 gap-3 overflow-hidden p-3 lg:grid-cols-[1fr_400px]">
-        <section className="animate-fade-in-up relative min-h-[320px] overflow-hidden" key={graphView}>
+        <section className="animate-fade-in-up relative min-h-[320px] overflow-hidden" key={`${activeUnitId}-${graphView}`}>
           {graphView === '3d' ? (
             <Suspense
               fallback={
@@ -297,6 +344,7 @@ export default function App() {
         </section>
 
         <section className="flex min-h-[320px] flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40">
+          {selectedNode && <ConceptDetailPanel node={selectedNode} />}
           <div className="flex border-b border-slate-800">
             <TabButton active={rightTab === 'dialogue'} onClick={() => setRightTab('dialogue')} label="Socratic Dialogue" />
             <TabButton active={rightTab === 'recall'} onClick={() => setRightTab('recall')} label="Active Recall" />
@@ -308,10 +356,10 @@ export default function App() {
                 turns={conceptTurns}
                 onNewTurn={handleNewTurn}
                 onEvaluation={handleEvaluation}
-                ttsEnabled={accessibility.soundscape !== 'off' || true}
+                ttsEnabled={accessibility.voiceNarrationEnabled}
               />
             ) : (
-              <ActiveRecallDeck cards={recallCards} nodes={nodes} onCardReviewed={handleCardReviewed} />
+              <ActiveRecallDeck cards={recallCards} nodes={allNodesFlat} onCardReviewed={handleCardReviewed} />
             )}
           </div>
         </section>
@@ -341,6 +389,77 @@ export default function App() {
           onChange={setAccessibility}
           onClose={() => setShowSettings(false)}
         />
+      )}
+    </div>
+  );
+}
+
+function SubjectSwitcher({ activeUnit, onSelect }: { activeUnit: ConceptUnit; onSelect: (unitId: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const Icon = UNIT_ICONS[activeUnit.icon];
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative hidden sm:block">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="flex h-10 items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 text-xs text-slate-300 transition-colors duration-200 hover:border-slate-700"
+      >
+        <Icon size={14} className="text-cyan-400" />
+        {activeUnit.subjectLabel} — {activeUnit.unitLabel}
+        <ChevronDown size={13} className={`text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          className="animate-fade-in-up absolute left-0 top-full z-40 mt-1.5 w-80 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-2xl"
+        >
+          {CONCEPT_UNITS.map((unit) => {
+            const UnitIcon = UNIT_ICONS[unit.icon];
+            const isActive = unit.id === activeUnit.id;
+            return (
+              <button
+                key={unit.id}
+                type="button"
+                role="option"
+                aria-selected={isActive}
+                onClick={() => {
+                  onSelect(unit.id);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center gap-2.5 px-3 py-3 text-left text-xs transition-colors duration-150 ${
+                  isActive ? 'bg-cyan-500/10 text-cyan-200' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <UnitIcon size={16} className={isActive ? 'text-cyan-300' : 'text-slate-500'} />
+                <span>
+                  <span className="block font-medium">{unit.subjectLabel}</span>
+                  <span className="block text-slate-500">{unit.unitLabel}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
       )}
     </div>
   );

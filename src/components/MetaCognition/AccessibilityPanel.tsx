@@ -1,5 +1,6 @@
 import { Sliders, X } from 'lucide-react';
 import type { AccessibilitySettings, FontProfile, SoundscapeId } from '../../types';
+import { useModalA11y } from '../../lib/useModalA11y';
 
 interface AccessibilityPanelProps {
   settings: AccessibilitySettings;
@@ -23,20 +24,29 @@ const SOUND_OPTIONS: { id: SoundscapeId; label: string }[] = [
 
 export default function AccessibilityPanel({ settings, onChange, onClose }: AccessibilityPanelProps) {
   const update = (partial: Partial<AccessibilitySettings>) => onChange({ ...settings, ...partial });
+  const closeButtonRef = useModalA11y(onClose);
 
   return (
-    <div className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="accessibility-dialog-title"
+      className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm"
+    >
       <div className="animate-modal-in mx-4 w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
           <div className="flex items-center gap-2">
             <Sliders className="text-cyan-400" size={20} />
-            <h2 className="text-sm font-semibold text-slate-100">Sensory &amp; Accessibility Settings</h2>
+            <h2 id="accessibility-dialog-title" className="text-sm font-semibold text-slate-100">
+              Sensory &amp; Accessibility Settings
+            </h2>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             aria-label="Close settings"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 hover:bg-slate-800"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-800"
           >
             <X size={18} />
           </button>
@@ -146,6 +156,11 @@ export default function AccessibilityPanel({ settings, onChange, onClose }: Acce
               label="Haptic Feedback"
               checked={settings.hapticsEnabled}
               onChange={(v) => update({ hapticsEnabled: v })}
+            />
+            <ToggleRow
+              label="Voice Narration (Socratic prompts read aloud)"
+              checked={settings.voiceNarrationEnabled}
+              onChange={(v) => update({ voiceNarrationEnabled: v })}
             />
           </div>
         </div>

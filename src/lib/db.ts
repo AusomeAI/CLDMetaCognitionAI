@@ -1,5 +1,12 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { AcademicTelemetryLog, ActiveRecallCard, ConceptNode, GraphEdge, SocraticTurn } from '../types';
+import type {
+  AcademicTelemetryLog,
+  AccessibilitySettings,
+  ActiveRecallCard,
+  ConceptNode,
+  GraphEdge,
+  SocraticTurn,
+} from '../types';
 
 interface MetaCognitionDB extends DBSchema {
   telemetry: {
@@ -18,10 +25,15 @@ interface MetaCognitionDB extends DBSchema {
     key: string;
     value: SocraticTurn;
   };
+  settings: {
+    key: string;
+    value: AccessibilitySettings & { id: string };
+  };
 }
 
 const DB_NAME = 'metacognition-ai';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
+const SETTINGS_KEY = 'accessibility';
 
 let dbPromise: Promise<IDBPDatabase<MetaCognitionDB>> | null = null;
 
@@ -41,10 +53,26 @@ function getDb() {
         if (!db.objectStoreNames.contains('socraticHistory')) {
           db.createObjectStore('socraticHistory', { keyPath: 'id' });
         }
+        if (!db.objectStoreNames.contains('settings')) {
+          db.createObjectStore('settings', { keyPath: 'id' });
+        }
       },
     });
   }
   return dbPromise;
+}
+
+export async function saveAccessibilitySettings(settings: AccessibilitySettings) {
+  const db = await getDb();
+  await db.put('settings', { ...settings, id: SETTINGS_KEY });
+}
+
+export async function getAccessibilitySettings(): Promise<AccessibilitySettings | undefined> {
+  const db = await getDb();
+  const stored = await db.get('settings', SETTINGS_KEY);
+  if (!stored) return undefined;
+  const { id: _id, ...settings } = stored;
+  return settings;
 }
 
 export async function saveTelemetryLog(log: AcademicTelemetryLog) {

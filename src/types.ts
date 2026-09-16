@@ -94,4 +94,5 @@ export interface AccessibilitySettings {
   hapticsEnabled: boolean;
   soundscape: SoundscapeId;
   masterVolume: number; // 0-1, clamped so effective output never exceeds 65dB-equivalent gain
+  voiceNarrationEnabled: boolean;
 }
