@@ -42,6 +42,7 @@ npm run test     # run the vitest unit suite (feynmanEvaluator, recallScheduler)
 - `src/components/MetaCognition/ConceptGraphCanvas3D.tsx` — lazy-loaded three.js "Neural Constellation" view: bloom-glowing nodes, animated energy-flow particles along verified edges, gentle idle float/pulse, starfield, orbit camera — all disabled/static when Reduce Motion is on
 - `src/components/MetaCognition/ConceptDetailPanel.tsx` — collapsible concept brief (summary, real-world analogy, misconceptions, AP/IB rubric) for the selected node
 - `src/components/MetaCognition/FeynmanVoicePilot.tsx` — voice/text Socratic dialogue UI
+- `src/components/MetaCognition/FRQPracticeMode.tsx` — zero-anxiety AP/IB free-response practice generator: targets the weakest concept cluster, reveals a progressive hint ladder, and self-checks against the rubric — no timer, no pass/fail
 - `src/components/MetaCognition/ActiveRecallDeck.tsx` — spaced-retrieval review deck (pools cards across every seeded unit)
 - `src/components/MetaCognition/TelemetryDashboard.tsx` — academic mastery analytics + PDF export
 - `src/components/MetaCognition/AccessibilityPanel.tsx` — dyslexia/ADHD sensory settings, persisted across reloads
@@ -51,4 +52,6 @@ npm run test     # run the vitest unit suite (feynmanEvaluator, recallScheduler)
 - `src/lib/db.ts` — IndexedDB persistence layer (per-unit graph state, recall cards, telemetry, dialogue history, accessibility settings)
 - `src/lib/useModalA11y.ts` — shared Escape-to-close + focus-management hook for modals
 - `src/components/GraphErrorBoundary.tsx` — isolates the graph canvas so a rendering failure there falls back to a recoverable message instead of blanking the app
-- `src/lib/feynmanEvaluator.test.ts`, `src/lib/recallScheduler.test.ts` — vitest unit coverage for the two pure scoring/scheduling engines
+- `src/lib/frqGenerator.ts` — deterministic FRQ prompt + hint-ladder generator, prioritizing gap-detected concept clusters
+- `src/lib/feynmanEvaluator.test.ts`, `src/lib/recallScheduler.test.ts`, `src/lib/frqGenerator.test.ts` — vitest unit coverage for the pure scoring/scheduling/generation engines
+- `.github/workflows/ci.yml` — GitHub Actions: lint, type-check, unit tests, and build on every push/PR

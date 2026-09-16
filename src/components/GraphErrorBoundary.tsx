@@ -3,8 +3,6 @@ import { AlertTriangle, RotateCcw } from 'lucide-react';
 
 interface GraphErrorBoundaryProps {
   children: ReactNode;
-  /** Remounts the boundary's children (and clears the error) when this changes. */
-  resetKey: string;
   onReset?: () => void;
 }
 
@@ -16,6 +14,11 @@ interface GraphErrorBoundaryState {
  * Isolates the concept graph canvas (2D or 3D) so a rendering failure there — e.g. a
  * WebGL context loss or a bad node coordinate — shows a recoverable fallback instead
  * of blanking the whole app. Socratic dialogue, recall deck, and telemetry keep working.
+ *
+ * The caller should mount this under an element keyed on whatever identifies "which
+ * graph" (unit id, view mode, ...) so that switching away and back remounts the
+ * boundary fresh, rather than the boundary reaching for setState in
+ * componentDidUpdate to reset itself.
  */
 export default class GraphErrorBoundary extends Component<GraphErrorBoundaryProps, GraphErrorBoundaryState> {
   state: GraphErrorBoundaryState = { error: null };
@@ -26,12 +29,6 @@ export default class GraphErrorBoundary extends Component<GraphErrorBoundaryProp
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('Concept graph rendering failed:', error, info.componentStack);
-  }
-
-  componentDidUpdate(prevProps: GraphErrorBoundaryProps) {
-    if (this.state.error && prevProps.resetKey !== this.props.resetKey) {
-      this.setState({ error: null });
-    }
   }
 
   private handleRetry = () => {

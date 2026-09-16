@@ -15,6 +15,7 @@ import {
 import ConceptGraphCanvas from './components/MetaCognition/ConceptGraphCanvas';
 import FeynmanVoicePilot from './components/MetaCognition/FeynmanVoicePilot';
 import ActiveRecallDeck from './components/MetaCognition/ActiveRecallDeck';
+import FRQPracticeMode from './components/MetaCognition/FRQPracticeMode';
 import TelemetryDashboard from './components/MetaCognition/TelemetryDashboard';
 import AccessibilityPanel from './components/MetaCognition/AccessibilityPanel';
 import ConceptDetailPanel from './components/MetaCognition/ConceptDetailPanel';
@@ -74,7 +75,7 @@ function buildInitialRecallCards(nodes: ConceptNode[]): ActiveRecallCard[] {
   );
 }
 
-type RightPanelTab = 'dialogue' | 'recall';
+type RightPanelTab = 'dialogue' | 'recall' | 'frq';
 type GraphViewMode = '2d' | '3d';
 type UnitsData = Record<string, { nodes: ConceptNode[]; edges: GraphEdge[] }>;
 
@@ -99,7 +100,7 @@ export default function App() {
   const [gapsResolvedToday, setGapsResolvedToday] = useState(0);
   const [explanationsToday, setExplanationsToday] = useState(0);
 
-  const sessionStart = useRef(Date.now());
+  const sessionStart = useRef(0);
   const loadedFromDb = useRef(false);
 
   const activeUnit: ConceptUnit = useMemo(
@@ -110,6 +111,7 @@ export default function App() {
   const edges = unitsData[activeUnitId].edges;
 
   useEffect(() => {
+    sessionStart.current = Date.now();
     (async () => {
       const [storedGraphs, storedCards, storedLogs, storedHistory, storedSettings] = await Promise.all([
         Promise.all(CONCEPT_UNITS.map((u) => getGraphState(u.id))),
@@ -208,6 +210,11 @@ export default function App() {
 
   const handleDragNode = (nodeId: string, x: number, y: number) => {
     updateActiveUnit((u) => ({ ...u, nodes: u.nodes.map((n) => (n.id === nodeId ? { ...n, x, y } : n)) }));
+  };
+
+  const handlePracticeNode = (nodeId: string) => {
+    setSelectedNodeId(nodeId);
+    setRightTab('dialogue');
   };
 
   const handleNewTurn = (turn: SocraticTurn) => {
@@ -315,7 +322,7 @@ export default function App() {
 
       <main className="grid flex-1 grid-cols-1 gap-3 overflow-hidden p-3 lg:grid-cols-[1fr_400px]">
         <section className="animate-fade-in-up relative min-h-[320px] overflow-hidden" key={`${activeUnitId}-${graphView}`}>
-          <GraphErrorBoundary resetKey={`${activeUnitId}-${graphView}`} onReset={() => setGraphView('2d')}>
+          <GraphErrorBoundary onReset={() => setGraphView('2d')}>
             {graphView === '3d' ? (
               <Suspense
                 fallback={
@@ -350,6 +357,7 @@ export default function App() {
           {selectedNode && <ConceptDetailPanel node={selectedNode} />}
           <div className="flex border-b border-slate-800">
             <TabButton active={rightTab === 'dialogue'} onClick={() => setRightTab('dialogue')} label="Socratic Dialogue" />
+            <TabButton active={rightTab === 'frq'} onClick={() => setRightTab('frq')} label="FRQ Practice" />
             <TabButton active={rightTab === 'recall'} onClick={() => setRightTab('recall')} label="Active Recall" />
           </div>
           <div className="flex-1 overflow-hidden">
@@ -361,6 +369,8 @@ export default function App() {
                 onEvaluation={handleEvaluation}
                 ttsEnabled={accessibility.voiceNarrationEnabled}
               />
+            ) : rightTab === 'frq' ? (
+              <FRQPracticeMode key={activeUnitId} nodes={nodes} onPracticeNode={handlePracticeNode} />
             ) : (
               <ActiveRecallDeck cards={recallCards} nodes={allNodesFlat} onCardReviewed={handleCardReviewed} />
             )}
