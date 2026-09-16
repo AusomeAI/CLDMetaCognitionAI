@@ -18,6 +18,7 @@ import ActiveRecallDeck from './components/MetaCognition/ActiveRecallDeck';
 import TelemetryDashboard from './components/MetaCognition/TelemetryDashboard';
 import AccessibilityPanel from './components/MetaCognition/AccessibilityPanel';
 import ConceptDetailPanel from './components/MetaCognition/ConceptDetailPanel';
+import GraphErrorBoundary from './components/GraphErrorBoundary';
 import { CONCEPT_UNITS, type ConceptUnit } from './data/conceptUnits';
 import type {
   AcademicTelemetryLog,
@@ -314,33 +315,35 @@ export default function App() {
 
       <main className="grid flex-1 grid-cols-1 gap-3 overflow-hidden p-3 lg:grid-cols-[1fr_400px]">
         <section className="animate-fade-in-up relative min-h-[320px] overflow-hidden" key={`${activeUnitId}-${graphView}`}>
-          {graphView === '3d' ? (
-            <Suspense
-              fallback={
-                <div className="flex h-full w-full items-center justify-center rounded-2xl border border-slate-800 bg-[#05070d] text-xs text-slate-500">
-                  Loading 3D neural constellation…
-                </div>
-              }
-            >
-              <ConceptGraphCanvas3D
+          <GraphErrorBoundary resetKey={`${activeUnitId}-${graphView}`} onReset={() => setGraphView('2d')}>
+            {graphView === '3d' ? (
+              <Suspense
+                fallback={
+                  <div className="flex h-full w-full items-center justify-center rounded-2xl border border-slate-800 bg-[#05070d] text-xs text-slate-500">
+                    Loading 3D neural constellation…
+                  </div>
+                }
+              >
+                <ConceptGraphCanvas3D
+                  nodes={nodes}
+                  edges={edges}
+                  selectedNodeId={selectedNodeId}
+                  focusMode={accessibility.focusMode}
+                  reduceMotion={accessibility.reduceMotion}
+                  onSelectNode={handleSelectNode}
+                />
+              </Suspense>
+            ) : (
+              <ConceptGraphCanvas
                 nodes={nodes}
                 edges={edges}
                 selectedNodeId={selectedNodeId}
                 focusMode={accessibility.focusMode}
-                reduceMotion={accessibility.reduceMotion}
                 onSelectNode={handleSelectNode}
+                onDragNode={handleDragNode}
               />
-            </Suspense>
-          ) : (
-            <ConceptGraphCanvas
-              nodes={nodes}
-              edges={edges}
-              selectedNodeId={selectedNodeId}
-              focusMode={accessibility.focusMode}
-              onSelectNode={handleSelectNode}
-              onDragNode={handleDragNode}
-            />
-          )}
+            )}
+          </GraphErrorBoundary>
         </section>
 
         <section className="flex min-h-[320px] flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40">

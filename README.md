@@ -28,6 +28,7 @@ review using an SM-2-derived algorithm.
 npm install
 npm run dev      # start the dev server
 npm run build    # type-check + production build
+npm run test     # run the vitest unit suite (feynmanEvaluator, recallScheduler)
 ```
 
 ## Key modules
@@ -49,3 +50,5 @@ npm run build    # type-check + production build
 - `src/lib/audioEngine.ts` — Web Audio ambient/chime synthesis, clamped to a safe gain ceiling
 - `src/lib/db.ts` — IndexedDB persistence layer (per-unit graph state, recall cards, telemetry, dialogue history, accessibility settings)
 - `src/lib/useModalA11y.ts` — shared Escape-to-close + focus-management hook for modals
+- `src/components/GraphErrorBoundary.tsx` — isolates the graph canvas so a rendering failure there falls back to a recoverable message instead of blanking the app
+- `src/lib/feynmanEvaluator.test.ts`, `src/lib/recallScheduler.test.ts` — vitest unit coverage for the two pure scoring/scheduling engines
