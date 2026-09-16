@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Brain,
   Network,
@@ -7,6 +7,8 @@ import {
   BarChart3,
   Sliders,
   Layers,
+  Box,
+  LayoutGrid,
 } from 'lucide-react';
 import ConceptGraphCanvas from './components/MetaCognition/ConceptGraphCanvas';
 import FeynmanVoicePilot from './components/MetaCognition/FeynmanVoicePilot';
@@ -37,6 +39,8 @@ import {
   saveTelemetryLog,
 } from './lib/db';
 
+const ConceptGraphCanvas3D = lazy(() => import('./components/MetaCognition/ConceptGraphCanvas3D'));
+
 const GRAPH_STATE_ID = 'ap-biology-unit-3';
 
 const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -66,6 +70,7 @@ function buildInitialRecallCards(nodes: ConceptNode[]): ActiveRecallCard[] {
 }
 
 type RightPanelTab = 'dialogue' | 'recall';
+type GraphViewMode = '2d' | '3d';
 
 export default function App() {
   const [nodes, setNodes] = useState<ConceptNode[]>(SEED_CONCEPT_NODES);
@@ -76,6 +81,7 @@ export default function App() {
   const [telemetryLogs, setTelemetryLogs] = useState<AcademicTelemetryLog[]>([]);
   const [accessibility, setAccessibility] = useState<AccessibilitySettings>(DEFAULT_ACCESSIBILITY);
   const [rightTab, setRightTab] = useState<RightPanelTab>('dialogue');
+  const [graphView, setGraphView] = useState<GraphViewMode>('2d');
   const [showTelemetry, setShowTelemetry] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [gapsResolvedToday, setGapsResolvedToday] = useState(0);
@@ -220,17 +226,39 @@ export default function App() {
         />
 
         <div className="ml-auto flex items-center gap-2">
+          <div className="flex h-11 items-center gap-0.5 rounded-lg border border-slate-700 bg-slate-900/60 p-1">
+            <button
+              type="button"
+              onClick={() => setGraphView('2d')}
+              aria-pressed={graphView === '2d'}
+              className={`flex h-full items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-all duration-200 ${
+                graphView === '2d' ? 'bg-cyan-500/20 text-cyan-200' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <LayoutGrid size={14} /> 2D
+            </button>
+            <button
+              type="button"
+              onClick={() => setGraphView('3d')}
+              aria-pressed={graphView === '3d'}
+              className={`flex h-full items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-all duration-200 ${
+                graphView === '3d' ? 'bg-purple-500/20 text-purple-200' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Box size={14} /> 3D Neural
+            </button>
+          </div>
           <button
             type="button"
             onClick={() => setShowSettings(true)}
-            className="flex h-11 items-center gap-1.5 rounded-lg border border-slate-700 px-3 text-xs font-medium text-slate-300 hover:bg-slate-800"
+            className="flex h-11 items-center gap-1.5 rounded-lg border border-slate-700 px-3 text-xs font-medium text-slate-300 transition-all duration-200 hover:scale-[1.03] hover:bg-slate-800 active:scale-[0.97]"
           >
             <Sliders size={14} /> Accessibility
           </button>
           <button
             type="button"
             onClick={() => void handleEndSession()}
-            className="flex h-11 items-center gap-1.5 rounded-lg border border-slate-700 px-3 text-xs font-medium text-slate-300 hover:bg-slate-800"
+            className="flex h-11 items-center gap-1.5 rounded-lg border border-slate-700 px-3 text-xs font-medium text-slate-300 transition-all duration-200 hover:scale-[1.03] hover:bg-slate-800 active:scale-[0.97]"
           >
             <BarChart3 size={14} /> Academic Telemetry
           </button>
@@ -238,15 +266,34 @@ export default function App() {
       </header>
 
       <main className="grid flex-1 grid-cols-1 gap-3 overflow-hidden p-3 lg:grid-cols-[1fr_400px]">
-        <section className="relative min-h-[320px] overflow-hidden">
-          <ConceptGraphCanvas
-            nodes={nodes}
-            edges={edges}
-            selectedNodeId={selectedNodeId}
-            focusMode={accessibility.focusMode}
-            onSelectNode={handleSelectNode}
-            onDragNode={handleDragNode}
-          />
+        <section className="animate-fade-in-up relative min-h-[320px] overflow-hidden" key={graphView}>
+          {graphView === '3d' ? (
+            <Suspense
+              fallback={
+                <div className="flex h-full w-full items-center justify-center rounded-2xl border border-slate-800 bg-[#05070d] text-xs text-slate-500">
+                  Loading 3D neural constellation…
+                </div>
+              }
+            >
+              <ConceptGraphCanvas3D
+                nodes={nodes}
+                edges={edges}
+                selectedNodeId={selectedNodeId}
+                focusMode={accessibility.focusMode}
+                reduceMotion={accessibility.reduceMotion}
+                onSelectNode={handleSelectNode}
+              />
+            </Suspense>
+          ) : (
+            <ConceptGraphCanvas
+              nodes={nodes}
+              edges={edges}
+              selectedNodeId={selectedNodeId}
+              focusMode={accessibility.focusMode}
+              onSelectNode={handleSelectNode}
+              onDragNode={handleDragNode}
+            />
+          )}
         </section>
 
         <section className="flex min-h-[320px] flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40">
@@ -271,12 +318,19 @@ export default function App() {
       </main>
 
       <footer className="flex flex-wrap items-center gap-4 border-t border-slate-800 bg-slate-950/60 px-4 py-3 text-xs text-slate-400">
-        <span className="flex items-center gap-1.5">
-          <Layers size={14} className="text-emerald-400" /> Concept Health: <strong className="text-emerald-300">{masteryPercent}% Solidified</strong>
+        <span className="flex items-center gap-1.5 transition-colors duration-500">
+          <Layers size={14} className="text-emerald-400" /> Concept Health:{' '}
+          <strong key={masteryPercent} className="animate-fade-in-up text-emerald-300">
+            {masteryPercent}% Solidified
+          </strong>
         </span>
-        <span>⚡ {gapsResolvedToday} Knowledge Gaps Solved Today</span>
+        <span key={`gaps-${gapsResolvedToday}`} className="animate-fade-in-up">
+          ⚡ {gapsResolvedToday} Knowledge Gaps Solved Today
+        </span>
         <span>🟡 {activeGapCount} Active Gap{activeGapCount === 1 ? '' : 's'}</span>
-        <span>🎙️ {explanationsToday} Explanations This Session</span>
+        <span key={`exp-${explanationsToday}`} className="animate-fade-in-up">
+          🎙️ {explanationsToday} Explanations This Session
+        </span>
         <span className="ml-auto">🎯 Exam Readiness: {examReadinessLabel}</span>
       </footer>
 
@@ -294,7 +348,7 @@ export default function App() {
 
 function RibbonPill({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <span className="hidden items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-300 sm:flex">
+    <span className="hidden items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-300 transition-colors duration-200 hover:border-slate-700 sm:flex">
       {icon} {label}
     </span>
   );
@@ -305,8 +359,8 @@ function TabButton({ active, onClick, label }: { active: boolean; onClick: () =>
     <button
       type="button"
       onClick={onClick}
-      className={`h-12 flex-1 text-xs font-medium transition-colors ${
-        active ? 'border-b-2 border-cyan-400 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
+      className={`h-12 flex-1 text-xs font-medium transition-all duration-200 ${
+        active ? 'border-b-2 border-cyan-400 text-cyan-300' : 'border-b-2 border-transparent text-slate-500 hover:text-slate-300'
       }`}
     >
       {label}

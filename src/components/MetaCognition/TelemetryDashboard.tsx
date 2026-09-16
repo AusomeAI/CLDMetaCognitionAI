@@ -30,8 +30,8 @@ export default function TelemetryDashboard({ logs, onClose }: TelemetryDashboard
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm print:static print:bg-white">
-      <div className="mx-4 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl print:max-h-none print:border-none print:bg-white print:text-black">
+    <div className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm print:static print:bg-white">
+      <div className="animate-modal-in mx-4 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl print:max-h-none print:border-none print:bg-white print:text-black">
         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4 print:hidden">
           <div className="flex items-center gap-2">
             <Award className="text-emerald-400" size={20} />
@@ -88,7 +88,7 @@ export default function TelemetryDashboard({ logs, onClose }: TelemetryDashboard
           <button
             type="button"
             onClick={handleExport}
-            className="h-12 w-full rounded-xl bg-emerald-500/20 text-sm font-medium text-emerald-300 hover:bg-emerald-500/30"
+            className="h-12 w-full rounded-xl bg-emerald-500/20 text-sm font-medium text-emerald-300 transition-all duration-200 hover:scale-[1.01] hover:bg-emerald-500/30 active:scale-[0.99]"
           >
             Export Study Portfolio (PDF)
           </button>
@@ -114,7 +114,7 @@ function StatTile({
   }[tone];
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3 print:border-slate-300">
+    <div className="animate-fade-in-up rounded-xl border border-slate-800 bg-slate-950/50 p-3 transition-transform duration-200 hover:-translate-y-0.5 print:border-slate-300">
       <p className="text-[10px] uppercase tracking-wide text-slate-500 print:text-black">{label}</p>
       <p className={`mt-1 text-xl font-semibold ${toneClass} print:text-black`}>{value}</p>
     </div>

@@ -200,10 +200,10 @@ export default function FeynmanVoicePilot({
         {turns.map((turn) => (
           <div
             key={turn.id}
-            className={`max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+            className={`animate-fade-in-up max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-relaxed transition-shadow ${
               turn.speaker === 'student'
                 ? 'ml-auto border border-cyan-500/30 bg-cyan-500/10 text-cyan-50'
-                : 'mr-auto border border-purple-500/30 bg-purple-500/10 text-purple-50'
+                : 'mr-auto border border-purple-500/30 bg-purple-500/10 text-purple-50 shadow-[0_0_24px_-12px_rgba(139,92,246,0.6)]'
             }`}
           >
             <p>{turn.text}</p>
@@ -224,7 +224,7 @@ export default function FeynmanVoicePilot({
           {waveform.map((h, i) => (
             <span
               key={i}
-              className="w-1.5 rounded-full bg-cyan-400 transition-all duration-75"
+              className="w-1.5 rounded-full bg-cyan-400 transition-all duration-100 ease-out"
               style={{ height: `${Math.min(40, h)}px`, opacity: isRecording ? 1 : 0.25 }}
             />
           ))}
@@ -237,9 +237,9 @@ export default function FeynmanVoicePilot({
             disabled={!supportsSpeech && !navigator.mediaDevices}
             aria-pressed={isRecording}
             aria-label={isRecording ? 'Stop recording explanation' : 'Hold or tap to speak your explanation'}
-            className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+            className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 hover:scale-105 active:scale-95 ${
               isRecording
-                ? 'animate-pulse border-cyan-400 bg-cyan-500/30 text-cyan-200'
+                ? 'animate-pulse border-cyan-400 bg-cyan-500/30 text-cyan-200 shadow-[0_0_20px_-4px_rgba(34,211,238,0.7)]'
                 : 'border-purple-500/50 bg-purple-500/10 text-purple-200 hover:bg-purple-500/20'
             }`}
           >
@@ -259,7 +259,7 @@ export default function FeynmanVoicePilot({
             onClick={submitExplanation}
             disabled={!draftText.trim()}
             aria-label="Submit explanation"
-            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 transition-colors hover:bg-emerald-500/30 disabled:opacity-30"
+            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 transition-all duration-200 hover:scale-105 hover:bg-emerald-500/30 active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
           >
             <Send size={22} />
           </button>

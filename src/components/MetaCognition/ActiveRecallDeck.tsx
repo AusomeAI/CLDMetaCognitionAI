@@ -35,7 +35,7 @@ export default function ActiveRecallDeck({ cards, nodes, onCardReviewed }: Activ
 
   if (!current) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
+      <div className="animate-fade-in-up flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
         <CheckCircle2 className="text-emerald-400" size={32} />
         <p className="text-sm font-medium text-slate-200">All caught up</p>
         <p className="text-xs text-slate-500">
@@ -58,7 +58,7 @@ export default function ActiveRecallDeck({ cards, nodes, onCardReviewed }: Activ
         <p className="text-base font-medium text-slate-100">{current.questionPrompt}</p>
 
         {revealed && currentNode && (
-          <div className="mt-4 space-y-2 border-t border-slate-800 pt-4 text-sm text-slate-300">
+          <div className="animate-fade-in-up mt-4 space-y-2 border-t border-slate-800 pt-4 text-sm text-slate-300">
             <p>{currentNode.summary}</p>
             <ul className="list-inside list-disc space-y-1 text-xs text-slate-400">
               {current.rubricCriteria.map((c) => (
@@ -73,7 +73,7 @@ export default function ActiveRecallDeck({ cards, nodes, onCardReviewed }: Activ
         <button
           type="button"
           onClick={() => setRevealed(true)}
-          className="mt-4 flex h-14 items-center justify-center gap-2 rounded-xl border border-slate-700 text-sm font-medium text-slate-200 hover:bg-slate-800"
+          className="mt-4 flex h-14 items-center justify-center gap-2 rounded-xl border border-slate-700 text-sm font-medium text-slate-200 transition-all duration-200 hover:scale-[1.01] hover:bg-slate-800 active:scale-[0.99]"
         >
           <RotateCcw size={16} /> Reveal Rubric &amp; Self-Assess
         </button>
@@ -84,7 +84,7 @@ export default function ActiveRecallDeck({ cards, nodes, onCardReviewed }: Activ
               key={opt.id}
               type="button"
               onClick={() => handleConfidence(opt.id)}
-              className={`h-16 rounded-xl border text-xs font-medium transition-colors ${opt.hue}`}
+              className={`animate-fade-in-up h-16 rounded-xl border text-xs font-medium transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] ${opt.hue}`}
             >
               {opt.label}
             </button>

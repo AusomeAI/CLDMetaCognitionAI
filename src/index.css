@@ -67,6 +67,80 @@ body[data-reduce-motion='true'] .node-pulse {
   animation: none;
 }
 
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-modal-in {
+  animation: modal-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-scrim-in {
+  animation: scrim-in 0.2s ease-out both;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.18), transparent);
+  background-size: 200% 100%;
+  animation: shimmer-sweep 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-modal-in,
+  .animate-scrim-in,
+  .animate-shimmer {
+    animation: none;
+  }
+}
+
+body[data-reduce-motion='true'] .animate-fade-in-up,
+body[data-reduce-motion='true'] .animate-modal-in,
+body[data-reduce-motion='true'] .animate-scrim-in,
+body[data-reduce-motion='true'] .animate-shimmer {
+  animation: none;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

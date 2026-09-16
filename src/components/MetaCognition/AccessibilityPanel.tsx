@@ -25,8 +25,8 @@ export default function AccessibilityPanel({ settings, onChange, onClose }: Acce
   const update = (partial: Partial<AccessibilitySettings>) => onChange({ ...settings, ...partial });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm">
-      <div className="mx-4 w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
+    <div className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm">
+      <div className="animate-modal-in mx-4 w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
           <div className="flex items-center gap-2">
             <Sliders className="text-cyan-400" size={20} />
@@ -51,7 +51,7 @@ export default function AccessibilityPanel({ settings, onChange, onClose }: Acce
                   key={opt.id}
                   type="button"
                   onClick={() => update({ fontProfile: opt.id })}
-                  className={`h-12 rounded-xl border text-xs font-medium ${
+                  className={`h-12 rounded-xl border text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                     settings.fontProfile === opt.id
                       ? 'border-cyan-500 bg-cyan-500/10 text-cyan-200'
                       : 'border-slate-700 text-slate-300 hover:bg-slate-800'
@@ -103,7 +103,7 @@ export default function AccessibilityPanel({ settings, onChange, onClose }: Acce
                   key={opt.id}
                   type="button"
                   onClick={() => update({ soundscape: opt.id })}
-                  className={`h-12 rounded-xl border text-xs font-medium ${
+                  className={`h-12 rounded-xl border text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                     settings.soundscape === opt.id
                       ? 'border-purple-500 bg-purple-500/10 text-purple-200'
                       : 'border-slate-700 text-slate-300 hover:bg-slate-800'
@@ -164,7 +164,7 @@ function ToggleRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex min-h-[64px] cursor-pointer items-center justify-between rounded-xl border border-slate-800 px-4 py-3">
+    <label className="flex min-h-[64px] cursor-pointer items-center justify-between rounded-xl border border-slate-800 px-4 py-3 transition-colors duration-200 hover:border-slate-700 hover:bg-slate-800/40">
       <span className="text-sm text-slate-200">{label}</span>
       <input
         type="checkbox"
