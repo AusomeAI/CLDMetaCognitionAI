@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+
+@theme {
+  --color-slate-canvas: #0b0f19;
+  --color-slate-panel: #0f172a;
+  --color-neural-cyan: #06b6d4;
+  --color-mastered-emerald: #10b981;
+  --color-gap-amber: #f59e0b;
+  --color-socratic-purple: #8b5cf6;
+  --font-sans: 'Lexend', 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: #0b0f19;
+  color: #e2e8f0;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body[data-font='opendyslexic'] {
+  font-family: 'OpenDyslexic', 'Lexend', sans-serif;
+}
+
+body[data-font='atkinson'] {
+  font-family: 'Atkinson Hyperlegible', sans-serif;
+}
+
+body[data-font='lexend'] {
+  font-family: 'Lexend', sans-serif;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 4px currentColor);
+    opacity: 0.85;
+  }
+  50% {
+    filter: drop-shadow(0 0 14px currentColor);
+    opacity: 1;
+  }
+}
+
+.node-pulse {
+  animation: pulse-glow 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node-pulse {
+    animation: none;
+  }
+}
+
+body[data-reduce-motion='true'] .node-pulse {
+  animation: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b0f19;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
