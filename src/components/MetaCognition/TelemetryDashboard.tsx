@@ -1,10 +1,15 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { Award, Layers, X } from 'lucide-react';
 import type { AcademicTelemetryLog } from '../../types';
 import { useModalA11y } from '../../lib/useModalA11y';
+import GraphErrorBoundary from '../GraphErrorBoundary';
+
+const MasteryOrb3D = lazy(() => import('./MasteryOrb3D'));
 
 interface TelemetryDashboardProps {
   logs: AcademicTelemetryLog[];
+  currentMasteryPercent: number;
+  reduceMotion: boolean;
   onClose: () => void;
 }
 
@@ -13,7 +18,12 @@ function average(nums: number[]): number {
   return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length);
 }
 
-export default function TelemetryDashboard({ logs, onClose }: TelemetryDashboardProps) {
+export default function TelemetryDashboard({
+  logs,
+  currentMasteryPercent,
+  reduceMotion,
+  onClose,
+}: TelemetryDashboardProps) {
   const closeButtonRef = useModalA11y(onClose);
   const totals = useMemo(() => {
     return {
@@ -60,6 +70,30 @@ export default function TelemetryDashboard({ logs, onClose }: TelemetryDashboard
         <div className="flex-1 overflow-y-auto p-5" id="telemetry-report">
           <h1 className="mb-4 hidden text-xl font-bold print:block">MetaCognition AI — Study Portfolio</h1>
 
+          <div className="mb-5 flex flex-col items-center gap-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4 sm:flex-row print:hidden">
+            <div
+              role="img"
+              aria-label={`Current unit mastery: ${Math.round(currentMasteryPercent)} percent`}
+              className="h-40 w-40 shrink-0"
+            >
+              <GraphErrorBoundary>
+                <Suspense
+                  fallback={
+                    <div className="flex h-40 w-40 items-center justify-center text-2xl font-bold text-slate-50">
+                      {Math.round(currentMasteryPercent)}%
+                    </div>
+                  }
+                >
+                  <MasteryOrb3D masteryPercent={currentMasteryPercent} reduceMotion={reduceMotion} />
+                </Suspense>
+              </GraphErrorBoundary>
+            </div>
+            <p className="text-center text-xs text-slate-400 sm:text-left">
+              Live mastery for the unit currently on screen — the orb's fill ring and color track how solidified
+              your concept graph is right now.
+            </p>
+          </div>
+
           <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatTile label="Sessions Logged" value={totals.sessions} />
             <StatTile label="Study Minutes" value={totals.minutes} />
@@ -67,7 +101,7 @@ export default function TelemetryDashboard({ logs, onClose }: TelemetryDashboard
             <StatTile label="Avg. Clarity Index" value={`${totals.avgClarity}%`} />
             <StatTile label="Gaps Identified" value={totals.gapsIdentified} tone="amber" />
             <StatTile label="Gaps Resolved" value={totals.gapsResolved} tone="emerald" />
-            <StatTile label="Graph Mastery" value={`${totals.avgMastery}%`} tone="emerald" />
+            <StatTile label="Graph Mastery (avg.)" value={`${totals.avgMastery}%`} tone="emerald" />
             <StatTile
               label="Gap Closure Rate"
               value={totals.gapsIdentified ? `${Math.round((totals.gapsResolved / totals.gapsIdentified) * 100)}%` : '—'}

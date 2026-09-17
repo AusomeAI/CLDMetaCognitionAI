@@ -44,7 +44,9 @@ npm run test     # run the vitest unit suite (feynmanEvaluator, recallScheduler)
 - `src/components/MetaCognition/FeynmanVoicePilot.tsx` — voice/text Socratic dialogue UI
 - `src/components/MetaCognition/FRQPracticeMode.tsx` — zero-anxiety AP/IB free-response practice generator: targets the weakest concept cluster, reveals a progressive hint ladder, and self-checks against the rubric — no timer, no pass/fail
 - `src/components/MetaCognition/ActiveRecallDeck.tsx` — spaced-retrieval review deck (pools cards across every seeded unit)
-- `src/components/MetaCognition/TelemetryDashboard.tsx` — academic mastery analytics + PDF export
+- `src/components/MetaCognition/TelemetryDashboard.tsx` — academic mastery analytics + PDF export, with a lazy-loaded 3D Mastery Orb (bloom-lit rotating wireframe + progress ring) visualizing the current unit's live mastery %
+- `src/components/MetaCognition/MasteryOrb3D.tsx` — the orb itself, reused wherever a compact 3D mastery gauge is useful
+- `src/components/MetaCognition/MasteryRipple3D.tsx` — a brief, understated three.js particle ripple that plays when a node is newly mastered while already in the 3D graph view (so the chunk is already loaded — 2D-only users never trigger a three.js download for it), paired with the existing audio/haptic mastery cue
 - `src/components/MetaCognition/AccessibilityPanel.tsx` — dyslexia/ADHD sensory settings, persisted across reloads
 - `src/lib/feynmanEvaluator.ts` — deterministic explanation scoring engine
 - `src/lib/recallScheduler.ts` — SM-2-derived spaced-repetition scheduler

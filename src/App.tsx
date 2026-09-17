@@ -47,6 +47,9 @@ import {
 } from './lib/db';
 
 const ConceptGraphCanvas3D = lazy(() => import('./components/MetaCognition/ConceptGraphCanvas3D'));
+const MasteryRipple3D = lazy(() => import('./components/MetaCognition/MasteryRipple3D'));
+
+const MASTERY_RIPPLE_COLOR = '#10B981';
 
 const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   fontProfile: 'default',
@@ -99,6 +102,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [gapsResolvedToday, setGapsResolvedToday] = useState(0);
   const [explanationsToday, setExplanationsToday] = useState(0);
+  const [showMasteryRipple, setShowMasteryRipple] = useState(false);
 
   const sessionStart = useRef(0);
   const loadedFromDb = useRef(false);
@@ -227,6 +231,9 @@ export default function App() {
     const prevNode = nodeById.get(nodeId);
     if (prevNode && prevNode.masteryStatus !== 'mastered' && newStatus === 'mastered') {
       setGapsResolvedToday((c) => c + 1);
+      // Only in the 3D view, where the three.js chunk is already loaded — 2D-only
+      // users never pay for it, matching the existing audio/haptic mastery cue instead.
+      if (graphView === '3d' && !accessibility.reduceMotion) setShowMasteryRipple(true);
     }
     updateActiveUnit((u) => ({
       nodes: u.nodes.map((n) => (n.id === nodeId ? { ...n, masteryStatus: newStatus } : n)),
@@ -395,13 +402,26 @@ export default function App() {
         <span className="ml-auto">🎯 Exam Readiness: {examReadinessLabel}</span>
       </footer>
 
-      {showTelemetry && <TelemetryDashboard logs={telemetryLogs} onClose={() => setShowTelemetry(false)} />}
+      {showTelemetry && (
+        <TelemetryDashboard
+          logs={telemetryLogs}
+          currentMasteryPercent={masteryPercent}
+          reduceMotion={accessibility.reduceMotion}
+          onClose={() => setShowTelemetry(false)}
+        />
+      )}
       {showSettings && (
         <AccessibilityPanel
           settings={accessibility}
           onChange={setAccessibility}
           onClose={() => setShowSettings(false)}
         />
+      )}
+
+      {showMasteryRipple && (
+        <Suspense fallback={null}>
+          <MasteryRipple3D color={MASTERY_RIPPLE_COLOR} onComplete={() => setShowMasteryRipple(false)} />
+        </Suspense>
       )}
     </div>
   );
