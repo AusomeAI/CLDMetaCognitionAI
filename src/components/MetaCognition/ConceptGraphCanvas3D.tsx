@@ -172,6 +172,42 @@ function EdgeCurve({
   );
 }
 
+function FocusSpotlight({
+  position,
+  reduceMotion,
+}: {
+  position: [number, number, number];
+  reduceMotion: boolean;
+}) {
+  const lightRef = useRef<THREE.SpotLight>(null);
+  const targetRef = useRef<THREE.Object3D>(null);
+
+  useFrame(({ clock }) => {
+    if (lightRef.current && targetRef.current) {
+      lightRef.current.target = targetRef.current;
+    }
+    if (lightRef.current && !reduceMotion) {
+      const t = clock.getElapsedTime();
+      lightRef.current.intensity = 230 + Math.sin(t * 1.1) * 35;
+    }
+  });
+
+  return (
+    <>
+      <object3D ref={targetRef} position={position} />
+      <spotLight
+        ref={lightRef}
+        position={[position[0] + 3, position[1] + 7, position[2] + 5]}
+        angle={0.4}
+        penumbra={0.65}
+        intensity={230}
+        distance={45}
+        color="#e0f2fe"
+      />
+    </>
+  );
+}
+
 function Scene({ nodes, edges, selectedNodeId, focusMode, reduceMotion, onSelectNode }: ConceptGraphCanvas3DProps) {
   const nodePositions = useMemo(() => {
     const map = new Map<string, [number, number, number]>();
@@ -196,6 +232,10 @@ function Scene({ nodes, edges, selectedNodeId, focusMode, reduceMotion, onSelect
       <pointLight position={[-10, -5, -10]} intensity={60} color="#06B6D4" />
 
       <Stars radius={80} depth={40} count={1200} factor={2} fade speed={reduceMotion ? 0 : 0.4} />
+
+      {focusMode && selectedNodeId && nodePositions.get(selectedNodeId) && (
+        <FocusSpotlight position={nodePositions.get(selectedNodeId)!} reduceMotion={reduceMotion} />
+      )}
 
       {edges.map((edge) => {
         const start = nodePositions.get(edge.sourceNodeId);
@@ -248,7 +288,7 @@ function Scene({ nodes, edges, selectedNodeId, focusMode, reduceMotion, onSelect
 
       <EffectComposer>
         <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.9} intensity={1.1} mipmapBlur />
-        <Vignette eskil={false} offset={0.2} darkness={0.6} />
+        <Vignette eskil={false} offset={0.2} darkness={focusMode && selectedNodeId ? 0.82 : 0.6} />
       </EffectComposer>
     </>
   );

@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Dna,
   Landmark,
+  HelpCircle,
 } from 'lucide-react';
 import ConceptGraphCanvas from './components/MetaCognition/ConceptGraphCanvas';
 import FeynmanVoicePilot from './components/MetaCognition/FeynmanVoicePilot';
@@ -20,6 +21,8 @@ import TelemetryDashboard from './components/MetaCognition/TelemetryDashboard';
 import AccessibilityPanel from './components/MetaCognition/AccessibilityPanel';
 import ConceptDetailPanel from './components/MetaCognition/ConceptDetailPanel';
 import GraphErrorBoundary from './components/GraphErrorBoundary';
+import OnboardingTour from './components/OnboardingTour';
+import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
 import { CONCEPT_UNITS, type ConceptUnit } from './data/conceptUnits';
 import type {
   AcademicTelemetryLog,
@@ -50,6 +53,23 @@ const ConceptGraphCanvas3D = lazy(() => import('./components/MetaCognition/Conce
 const MasteryRipple3D = lazy(() => import('./components/MetaCognition/MasteryRipple3D'));
 
 const MASTERY_RIPPLE_COLOR = '#10B981';
+const ONBOARDING_STORAGE_KEY = 'metacognition-ai:onboarded-v1';
+
+function hasCompletedOnboarding(): boolean {
+  try {
+    return localStorage.getItem(ONBOARDING_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function markOnboardingComplete() {
+  try {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
+  } catch {
+    // Private browsing / storage disabled — the tour will just show again next visit.
+  }
+}
 
 const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   fontProfile: 'default',
@@ -103,6 +123,8 @@ export default function App() {
   const [gapsResolvedToday, setGapsResolvedToday] = useState(0);
   const [explanationsToday, setExplanationsToday] = useState(0);
   const [showMasteryRipple, setShowMasteryRipple] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const sessionStart = useRef(0);
   const loadedFromDb = useRef(false);
@@ -161,6 +183,19 @@ export default function App() {
     audioEngine.setMasterVolume(accessibility.masterVolume);
     audioEngine.setAmbientSoundscape(accessibility.soundscape);
   }, [accessibility]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== '?') return;
+      const target = e.target as HTMLElement | null;
+      const isTyping = target && ['INPUT', 'TEXTAREA'].includes(target.tagName);
+      if (isTyping || showOnboarding || showShortcuts || showTelemetry || showSettings) return;
+      e.preventDefault();
+      setShowShortcuts(true);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showOnboarding, showShortcuts, showTelemetry, showSettings]);
 
   const nodeById = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
   const selectedNode = nodeById.get(selectedNodeId) ?? nodes[0];
@@ -324,6 +359,15 @@ export default function App() {
           >
             <BarChart3 size={14} /> Academic Telemetry
           </button>
+          <button
+            type="button"
+            onClick={() => setShowShortcuts(true)}
+            aria-label="Keyboard shortcuts"
+            title="Keyboard shortcuts (?)"
+            className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-700 text-slate-300 transition-all duration-200 hover:scale-[1.03] hover:bg-slate-800 active:scale-[0.97]"
+          >
+            <HelpCircle size={16} />
+          </button>
         </div>
       </header>
 
@@ -422,6 +466,24 @@ export default function App() {
         <Suspense fallback={null}>
           <MasteryRipple3D color={MASTERY_RIPPLE_COLOR} onComplete={() => setShowMasteryRipple(false)} />
         </Suspense>
+      )}
+
+      {showOnboarding && (
+        <OnboardingTour
+          onClose={() => {
+            markOnboardingComplete();
+            setShowOnboarding(false);
+          }}
+        />
+      )}
+      {showShortcuts && (
+        <KeyboardShortcutsHelp
+          onClose={() => setShowShortcuts(false)}
+          onReplayTour={() => {
+            setShowShortcuts(false);
+            setShowOnboarding(true);
+          }}
+        />
       )}
     </div>
   );

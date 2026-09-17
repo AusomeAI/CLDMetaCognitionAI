@@ -57,3 +57,6 @@ npm run test     # run the vitest unit suite (feynmanEvaluator, recallScheduler)
 - `src/lib/frqGenerator.ts` — deterministic FRQ prompt + hint-ladder generator, prioritizing gap-detected concept clusters
 - `src/lib/feynmanEvaluator.test.ts`, `src/lib/recallScheduler.test.ts`, `src/lib/frqGenerator.test.ts` — vitest unit coverage for the pure scoring/scheduling/generation engines
 - `.github/workflows/ci.yml` — GitHub Actions: lint, type-check, unit tests, and build on every push/PR
+- `src/components/OnboardingTour.tsx` — dismissible first-visit walkthrough of the core UI (localStorage-gated, replayable from the shortcuts panel)
+- `src/components/KeyboardShortcutsHelp.tsx` — press `?` anywhere to see the graph/keyboard shortcuts, with a "Replay Welcome Tour" link
+- `public/fonts/opendyslexic/` — self-hosted OpenDyslexic webfont files, referenced directly by `@font-face` in `index.css` (not a bundler-resolved import, so it can't silently fail to ship — the accessibility panel's OpenDyslexic option previously fell back to Lexend with no font ever loaded)

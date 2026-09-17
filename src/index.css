@@ -2,6 +2,24 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap');
 
+/* Self-hosted directly from /public (not a bundler-resolved import, and not
+   CDN-dependent) so the dyslexia-friendly font option always works reliably,
+   including offline — consistent with this app's on-device-first design. */
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/opendyslexic/opendyslexic-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/opendyslexic/opendyslexic-latin-700-normal.woff2') format('woff2');
+}
+
 @theme {
   --color-slate-canvas: #0b0f19;
   --color-slate-panel: #0f172a;
