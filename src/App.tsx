@@ -322,7 +322,7 @@ export default function App() {
           label={accessibility.soundscape === 'off' ? 'Sound Off' : '432Hz Focus Ambient (65dB Safe)'}
         />
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           <div className="flex h-11 items-center gap-0.5 rounded-lg border border-slate-700 bg-slate-900/60 p-1">
             <button
               type="button"
@@ -511,23 +511,29 @@ function SubjectSwitcher({ activeUnit, onSelect }: { activeUnit: ConceptUnit; on
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative hidden sm:block">
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex h-10 items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 text-xs text-slate-300 transition-colors duration-200 hover:border-slate-700"
+        className="flex h-10 max-w-[65vw] items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 text-xs text-slate-300 transition-colors duration-200 hover:border-slate-700 sm:max-w-none"
       >
-        <Icon size={14} className="text-cyan-400" />
-        {activeUnit.subjectLabel} — {activeUnit.unitLabel}
-        <ChevronDown size={13} className={`text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <Icon size={14} className="shrink-0 text-cyan-400" />
+        <span className="truncate">
+          {activeUnit.subjectLabel}
+          <span className="hidden sm:inline"> — {activeUnit.unitLabel}</span>
+        </span>
+        <ChevronDown
+          size={13}
+          className={`shrink-0 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
         <div
           role="listbox"
-          className="animate-fade-in-up absolute left-0 top-full z-40 mt-1.5 w-80 overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-2xl"
+          className="animate-fade-in-up fixed inset-x-3 top-28 z-40 max-h-[70vh] overflow-y-auto rounded-xl border border-slate-800 bg-slate-900 shadow-2xl sm:absolute sm:inset-x-auto sm:top-full sm:left-0 sm:mt-1.5 sm:w-80 sm:max-w-[calc(100vw-2rem)]"
         >
           {CONCEPT_UNITS.map((unit) => {
             const UnitIcon = UNIT_ICONS[unit.icon];

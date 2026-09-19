@@ -46,9 +46,13 @@ export default function TelemetryDashboard({
       role="dialog"
       aria-modal="true"
       aria-labelledby="telemetry-dialog-title"
-      className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm print:static print:bg-white"
+      className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm print:static print:bg-white print:p-0"
+      onClick={onClose}
     >
-      <div className="animate-modal-in mx-4 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl print:max-h-none print:border-none print:bg-white print:text-black">
+      <div
+        className="animate-modal-in flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl print:max-h-none print:border-none print:bg-white print:text-black"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4 print:hidden">
           <div className="flex items-center gap-2">
             <Award className="text-emerald-400" size={20} />

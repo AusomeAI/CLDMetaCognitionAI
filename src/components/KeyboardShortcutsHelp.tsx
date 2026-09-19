@@ -24,10 +24,14 @@ export default function KeyboardShortcutsHelp({ onClose, onReplayTour }: Keyboar
       role="dialog"
       aria-modal="true"
       aria-labelledby="shortcuts-dialog-title"
-      className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm"
+      className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+      onClick={onClose}
     >
-      <div className="animate-modal-in mx-4 w-full max-w-md overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
+      <div
+        className="animate-modal-in flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-5 py-4">
           <div className="flex items-center gap-2">
             <Keyboard className="text-cyan-400" size={20} />
             <h2 id="shortcuts-dialog-title" className="text-sm font-semibold text-slate-100">
@@ -39,13 +43,13 @@ export default function KeyboardShortcutsHelp({ onClose, onReplayTour }: Keyboar
             type="button"
             onClick={onClose}
             aria-label="Close keyboard shortcuts"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-800"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-800"
           >
             <X size={18} />
           </button>
         </div>
 
-        <ul className="space-y-1 p-4">
+        <ul className="space-y-1 overflow-y-auto p-4">
           {SHORTCUTS.map((s) => (
             <li
               key={s.keys}
@@ -59,7 +63,7 @@ export default function KeyboardShortcutsHelp({ onClose, onReplayTour }: Keyboar
           ))}
         </ul>
 
-        <div className="border-t border-slate-800 p-4">
+        <div className="shrink-0 border-t border-slate-800 p-4">
           <button
             type="button"
             onClick={onReplayTour}

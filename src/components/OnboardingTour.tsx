@@ -46,10 +46,14 @@ export default function OnboardingTour({ onClose }: OnboardingTourProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="onboarding-dialog-title"
-      className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm"
+      className="animate-scrim-in fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+      onClick={onClose}
     >
-      <div className="animate-modal-in mx-4 w-full max-w-lg overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
+      <div
+        className="animate-modal-in flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-800 px-5 py-4">
           <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             Quick Tour · {step + 1} of {STEPS.length}
           </span>
@@ -58,13 +62,13 @@ export default function OnboardingTour({ onClose }: OnboardingTourProps) {
             type="button"
             onClick={onClose}
             aria-label="Skip tour"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-800"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-800"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div key={step} className="animate-fade-in-up p-6">
+        <div key={step} className="animate-fade-in-up overflow-y-auto p-6">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10">
             <Icon className="text-cyan-300" size={26} />
           </div>
@@ -74,7 +78,7 @@ export default function OnboardingTour({ onClose }: OnboardingTourProps) {
           <p className="text-sm leading-relaxed text-slate-300">{current.body}</p>
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-slate-800 px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-800 px-6 py-4">
           <div className="flex gap-1.5" role="tablist" aria-label="Tour progress">
             {STEPS.map((s, i) => (
               <span
